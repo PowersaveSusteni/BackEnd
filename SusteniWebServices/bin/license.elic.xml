@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<License xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Key="UiuFtKYBADRKXOL2vA+XEnMPJe63f7Ye44/CXXn6+wEJFknjLV4gKNC7bn4RHDlZD+UvijYZiSWE7Q/dMA26lmxp5CuAM+Zg0EnmeZWzcaJYizSle2CesAWZHzuf27l/Ljb5FhT5truD01q/xCLixjbtTnr0S3hG5vc6q0P73bJ7IG9vzpQ/xX4AGUz5eEVYM356MifrOPhP4LtGiExN6xiz6mIYa+/ZnzLLBMNeGKa49ztAetJlCtgLsH42Wk0FyO/KnuCJ6Dnzrh8obPDydYF66xyqBiGbnAjuk6Le5xuFCHrI2cMRKXE+Uydlqc0X9+sjlTC/y3mMRuFS/rrA/pl0RgMpgwgMa2ic4H7iowjCbhR27U7HfqpsRA3Jb404CKS9ifxpBlN2FCjGkhu1wZAYs/vZa7973P69YyeMyYZnIOOgBzHOqoZUOooKCD+cDe1oDpclbT5ZUZX7h6nw6i3gaAe2AnsbCGyR8tCauo9df3+PscnlBusz6Pg7kMF7UWgXoo0XrHJg2T9iejn7KfkcddZdze9spZThR8x5jBCCJEmE7pba+lCgPgEtnjKB3fOTF/DKGKC9Wj0sn5ucnBIN1EJX6XkJxtwSZzaKBHop78SOVRQ4krOacewx0SLbJqIPLL/dY0/0KfKsh5HBKk03Yw9ebEBVKtVqlaeZ1/ReygYhjbm1g6yqCGWMAOR2+RsIv9Ghbq8QUigOIWhfWiLOZ45zBf5Y+NI1keMXR7PgY/jU7ZBTBbg3uWx8T2I3mJeVUvEBu7rU/q1YtANOsXUKZNIlYKcQb5/B3QOW8ecspZYVNP55BNCihF9hoVLKINPmj81Dl31tI4ZN7JCVISOfxIwXpy1Z67StMsSHiB87hTy7NhmwV3JuO1S+MrpwtVBDjGwHC2oGOKukJE5XUD478dShm6UST3j9l3otnmdIkbvlaSleSOqFRvPudkcOcFRsB2ibA6KK/Jni7xK7JO6PjayQPjSwT3WCRhdbD1SnnGqBOK7rCTxYgyhyoSlx95CL7W61LALoEcjVYrMGrFcufCZmwCVErrlvNIAE7b77PjjNR+Oj59riS1PQziSG+glMVc+tObneYZD1u1qqzXNwwmXYAh5QxYE2ef28yKSqdaus00/P9EnXplAmslnNDtrFPRzFm/eTrlFZfwj8ck/vSCdpJKJU09vGWENBfBJ1cbM3sv+yl6FxXifL0N54BpKwWwwrm9T96Z6ze+ZkxNYo4RF7H0CUCgYK+O3sYNr1lfc9IetJWG7AvG//zyqJCxXP3j+2sCMACJADW5HKBjLNWQ39TsNZ1AEvwwbGb/GPMyvXmeDydKpxPLGsUgEUoMrer6VtwXhwqm1wj8nPvJW/RNFKQqEYK9//FSKJ5Q3ikxQU0CAuyb9A8ni/Hqfz0UKcf++K5U0whZb2yLV5193DGZgIFh88ylXbHsPHEIR4pVBT5qp6ckhxLJV1NpsP8VJaZpcOrUk=" Version="1.3">
+	<Type>Runtime</Type>
+	<Username>Einar Aasen</Username>
+	<Email>einar@KIRKEDATA.NO</Email>
+	<Organization>KIRKEDATA AS</Organization>
+	<LicensedDate>2022-08-30T00:00:00Z</LicensedDate>
+	<ExpiredDate>2023-08-30T00:00:00Z</ExpiredDate>
+	<Products>
+		<Product>
+			<Name>Spire.Doc Pro Edition</Name>
+			<Version>10.7</Version>
+			<Subscription>
+				<NumberOfPermittedDeveloper>1</NumberOfPermittedDeveloper>
+				<NumberOfPermittedSite>1</NumberOfPermittedSite>
+			</Subscription>
+		</Product>
+	</Products>
+	<Issuer>
+		<Name>e-iceblue</Name>
+		<Email>sales@e-iceblue.com</Email>
+		<Url>http://www.e-iceblue.com</Url>
+	</Issuer>
+</License>
