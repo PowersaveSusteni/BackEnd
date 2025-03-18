@@ -22,7 +22,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Forçar redirecionamento de HTTP para HTTPS
+app.UseHttpsRedirection();  // Isso vai garantir que as requisições HTTP sejam redirecionadas para HTTPS
+
 app.UseAuthorization();
 app.MapControllers();
 

@@ -13,7 +13,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.4" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.205.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Otp.NET" Version="1.3.0" />
@@ -24,7 +26,8 @@
     <PackageReference Include="System.ServiceModel.Http" Version="8.0.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="8.0.0" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
-    <PackageReference Include="Telerik.Reporting.Services.AspNetCore" Version="17.2.23.1114" />
+    <!-- Pacote Telerik Reporting -->
+    <PackageReference Include="Telerik.Reporting.Services.AspNetCore.Trial" Version="19.0.25.313" />
   </ItemGroup>
 
   <ItemGroup>
