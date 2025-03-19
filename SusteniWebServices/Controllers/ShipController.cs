@@ -22,6 +22,13 @@ using Spire.Doc.Documents.Rendering;
 using Microsoft.VisualStudio.Services.WebApi;
 
 
+
+public class GeneratorRequest
+{
+    public string GeneratorGuid { get; set; }
+}
+
+
 public class ShipItem
 {
     public string? ShipGuid { get; set; } = "";
@@ -2847,6 +2854,83 @@ namespace SusteniWebServices.Controllers
 
             return item;
         }
+
+        [Route("DuplicateGenerator")]
+        [HttpPost]
+        public string DuplicateGenerator(AccountLogOnInfoItem logonInfo, string GeneratorGuid)
+        {
+            string conString = @"server=" + logonInfo.Server + ";User Id=" + logonInfo.UserId +
+                            ";password=" + logonInfo.Password + ";database=" + logonInfo.Database +
+                            ";TrustServerCertificate=True";
+            
+            ShipGeneratorItem originalGenerator = GetShipGeneratorInternal(logonInfo, GeneratorGuid);
+            if (originalGenerator == null)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Gerador não encontrado." });
+            }
+
+            // Obter a lista de geradores existentes para encontrar o próximo número disponível
+            List<ShipGeneratorItem> generators = CreateShipGeneratorList(logonInfo);
+            int maxNumber = 0;
+
+            foreach (var gen in generators)
+            {
+                string name = gen.Name;
+                if (name.StartsWith("Gerador"))
+                {
+                    string numberPart = name.Substring(7); // Remove "Gerador" e mantém apenas o número
+                    if (int.TryParse(numberPart, out int number))
+                    {
+                        if (number > maxNumber)
+                        {
+                            maxNumber = number;
+                        }
+                    }
+                }
+            }
+
+            int nextNumber = maxNumber + 1;
+            string newGeneratorName = "Gerador" + nextNumber;
+
+            string newGeneratorGuid = Guid.NewGuid().ToString();
+
+            // Criando o SQL para inserir um novo gerador baseado no original
+            string sql = "INSERT INTO Generators (GeneratorGuid, ShipGuid, Name, Order, FuelTypeGuid, TypeGuid, kW, " +
+                        "KgDieselkWh, EfficientMotorSwitchboard, MaintenanceCost, PowerProduction, ExcludeAutoTune) " +
+                        "VALUES (@GeneratorGuid, @ShipGuid, @Name, @Order, @FuelTypeGuid, @TypeGuid, @kW, " +
+                        "@KgDieselkWh, @EfficientMotorSwitchboard, @MaintenanceCost, @PowerProduction, @ExcludeAutoTune)";
+
+            using (SqlConnection cnn = new SqlConnection(conString))
+            {
+                cnn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, cnn))
+                {
+                    cmd.Parameters.AddWithValue("@GeneratorGuid", newGeneratorGuid);
+                    cmd.Parameters.AddWithValue("@ShipGuid", originalGenerator.ShipGuid);
+                    cmd.Parameters.AddWithValue("@Name", newGeneratorName);
+                    cmd.Parameters.AddWithValue("@Order", originalGenerator.Order);
+                    cmd.Parameters.AddWithValue("@FuelTypeGuid", originalGenerator.FuelTypeGuid);
+                    cmd.Parameters.AddWithValue("@TypeGuid", originalGenerator.TypeGuid);
+                    cmd.Parameters.AddWithValue("@kW", originalGenerator.kW);
+                    cmd.Parameters.AddWithValue("@KgDieselkWh", originalGenerator.KgDieselkWh);
+                    cmd.Parameters.AddWithValue("@EfficientMotorSwitchboard", originalGenerator.EfficientMotorSwitchboard);
+                    cmd.Parameters.AddWithValue("@MaintenanceCost", originalGenerator.MaintenanceCost);
+                    cmd.Parameters.AddWithValue("@PowerProduction", originalGenerator.PowerProduction);
+                    cmd.Parameters.AddWithValue("@ExcludeAutoTune", originalGenerator.ExcludeAutoTune);
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return JsonConvert.SerializeObject(new { success = true, message = "Gerador duplicado com sucesso!", newGeneratorGuid });
+                    }
+                    catch (Exception ex)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+        }
+
 
 
         [Route("GetShipGeneratorLoad")]
