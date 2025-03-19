@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj": {}
+    "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj": {
+    "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
+        "projectUniqueName": "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
         "projectName": "SusteniWebServices",
-        "projectPath": "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
+        "projectPath": "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
         "packagesPath": "C:\\Users\\ItamarAugustoSilvaRi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\obj\\",
+        "outputPath": "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",

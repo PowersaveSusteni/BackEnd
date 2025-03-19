@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mT5xYAfGwew=",
+  "dgSpecHash": "OVy0VHrzu4c=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
+  "projectFilePath": "c:\\Users\\ItamarAugustoSilvaRi\\Desktop\\SusteniWebServices\\SusteniWebServices\\SusteniWebServices.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ItamarAugustoSilvaRi\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ItamarAugustoSilvaRi\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
