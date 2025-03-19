@@ -196,18 +196,6 @@ C:\Visual Studio\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\SusteniW
 C:\Visual Studio\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\Visual Studio\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets\msbuild.SusteniWebServices.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
 C:\Visual Studio\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.csproj.AssemblyReference.cache
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.AssemblyInfoInputs.cache
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.AssemblyInfo.cs
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.csproj.CoreCompileInputs.cache
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.MvcApplicationPartsAssemblyInfo.cs
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\Telerik.Licensing.LicenseInfo.cs
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.sourcelink.json
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.dll
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\refint\SusteniWebServices.dll
-C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.pdb
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\appsettings.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\SusteniWebServices.staticwebassets.endpoints.json
@@ -421,6 +409,15 @@ C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Threading.AccessControl.dll
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.csproj.AssemblyReference.cache
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.AssemblyInfoInputs.cache
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.AssemblyInfo.cs
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.csproj.CoreCompileInputs.cache
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\Telerik.Licensing.LicenseInfo.cs
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.sourcelink.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\scopedcss\bundle\SusteniWebServices.styles.css
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets.development.json
@@ -432,5 +429,8 @@ C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.SusteniWebServices.props
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniW.EE030959.Up2Date
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.dll
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\refint\SusteniWebServices.dll
+C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.pdb
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\SusteniWebServices.genruntimeconfig.cache
 C:\Users\ItamarAugustoSilvaRi\Desktop\SusteniWebServices\SusteniWebServices\obj\Debug\net8.0\ref\SusteniWebServices.dll

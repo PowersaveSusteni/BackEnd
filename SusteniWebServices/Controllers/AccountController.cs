@@ -167,7 +167,7 @@ namespace SusteniWebServices.Controllers
             SqlCommand cmd;
             SqlDataReader rdr;
 
-            conString = @"server=" + item.logonInfo.Server + ";User Id=" + item.logonInfo.UserId + ";password=" + item.logonInfo.Password + ";database=" + item.logonInfo.Database + ";TrustServerCertificate=True";
+            conString = @"Server=localhost\SQLEXPRESS;Database=Susteni;Trusted_Connection=True;TrustServerCertificate=True";
 
             try
             {
