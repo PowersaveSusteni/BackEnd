@@ -493,6 +493,87 @@ namespace SusteniWebServices.Controllers
 
         #region Ship information
 
+
+        [HttpPost]
+        [Route("SaveGenerators")]
+        public IActionResult SaveGenerators([FromBody] List<ShipGeneratorItem> generators)
+        {
+            if (generators == null || !generators.Any())
+            {
+                return BadRequest("Nenhum gerador enviado para salvar.");
+            }
+
+            try
+            {
+                using (SqlConnection cnn = new SqlConnection(@"Server=localhost;
+                    Database=Susteni;
+                    Integrated Security=True;
+                    TrustServerCertificate=True;
+                    Encrypt=False;"))
+
+                {
+                    cnn.Open();
+
+                    foreach (var generator in generators)
+                    {
+                        if (!Guid.TryParse(generator.GeneratorGuid, out Guid generatorGuid) ||
+                            !Guid.TryParse(generator.ShipGuid, out Guid shipGuid))
+                        {
+                            return BadRequest($"GUID inválido para GeneratorGuid ({generator.GeneratorGuid}) ou ShipGuid ({generator.ShipGuid})");
+                        }
+
+                        string sql = @"
+                            IF EXISTS (SELECT 1 FROM ShipGenerators WHERE GeneratorGuid = @GeneratorGuid)
+                            BEGIN
+                                UPDATE ShipGenerators SET 
+                                    Name = @Name, 
+                                    kW = @kW, 
+                                    KgDieselkWh = @KgDieselkWh, 
+                                    FuelTypeGuid = @FuelTypeGuid,
+                                    MaintenanceCost = @MaintenanceCost,
+                                    FuelPrice = @FuelPrice,
+                                    PowerProduction = @PowerProduction,
+                                    OrderNumber = @OrderNumber
+                                WHERE GeneratorGuid = @GeneratorGuid
+                            END
+                            ELSE
+                            BEGIN
+                                INSERT INTO ShipGenerators (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, OrderNumber)
+                                VALUES (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @OrderNumber)
+                            END";
+
+                        using (SqlCommand cmd = new SqlCommand(sql, cnn))
+                        {
+                            cmd.Parameters.Add("@GeneratorGuid", SqlDbType.UniqueIdentifier).Value = generatorGuid;
+                            cmd.Parameters.Add("@ShipGuid", SqlDbType.UniqueIdentifier).Value = shipGuid;
+                            cmd.Parameters.AddWithValue("@Name", generator.Name);
+                            cmd.Parameters.AddWithValue("@kW", generator.kW);
+                            cmd.Parameters.AddWithValue("@KgDieselkWh", generator.KgDieselkWh);
+                            cmd.Parameters.AddWithValue("@FuelTypeGuid", generator.FuelTypeGuid ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@MaintenanceCost", generator.MaintenanceCost);
+                            cmd.Parameters.AddWithValue("@FuelPrice", generator.FuelPrice);
+                            cmd.Parameters.AddWithValue("@PowerProduction", generator.PowerProduction);
+                            cmd.Parameters.AddWithValue("@OrderNumber", generator.Order);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                return Ok(new { message = "Geradores salvos com sucesso!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao salvar os geradores.", details = ex.Message });
+            }
+        }
+
+
+
+
+
+
+
         [Route("CreateShip")]
         [HttpPost]
         public string CreateShip(NewShipItem item)
@@ -642,6 +723,8 @@ namespace SusteniWebServices.Controllers
         }
 
 
+
+
         [Route("GetShip")]
         [HttpPost]
         public string GetShip(AccountLogOnInfoItem logonInfo)
@@ -750,6 +833,9 @@ namespace SusteniWebServices.Controllers
                 CsqlU(ref sql, "UnitOfMeasurement", item.UnitOfMeasurement, itemOld.UnitOfMeasurement);
                 CsqlU(ref sql, "InfoText", item.InfoText, itemOld.InfoText);
         }
+
+
+        
 
             conString = @"server=" + item.logonInfo.Server + ";User Id=" + item.logonInfo.UserId + ";password=" + item.logonInfo.Password + ";database=" + item.logonInfo.Database + ";TrustServerCertificate=True";
 
