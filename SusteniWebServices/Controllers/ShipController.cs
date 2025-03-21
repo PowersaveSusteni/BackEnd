@@ -212,36 +212,40 @@ public class ShipGeneratorModesSummaryItem
     public double SOxAfter { get; set; } = 0;
 }
 
+
 public class ShipGeneratorItem
 {
     public string? GeneratorGuid { get; set; } = "";
     public string ShipGuid { get; set; } = "";
     public string Name { get; set; } = "";
     public int Order { get; set; } = 0;
-    public string TypeGuid { get; set; } = "";
-    public string FuelTypeGuid { get; set; } = "";
+
+    public string? TypeGuid { get; set; } = "";
+    public string? FuelTypeGuid { get; set; } = "";
+
     public int kW { get; set; } = 0;
-    public Double KgDieselkWh { get; set; } = 0;
-    public Double EfficientMotorSwitchboard { get; set; } = 0;
-    public Double MaintenanceCost { get; set; } = 0;
-    public Double FuelPrice { get; set; } = 0;
+    public double KgDieselkWh { get; set; } = 0;
+    public double EfficientMotorSwitchboard { get; set; } = 0;
+    public double MaintenanceCost { get; set; } = 0;
+    public double FuelPrice { get; set; } = 0;
     public bool PowerProduction { get; set; } = true;
     public bool ExcludeAutoTune { get; set; } = false;
-    public int EffectBefore { get; set;} = 0;
+    public int EffectBefore { get; set; } = 0;
     public int EffectAfter { get; set; } = 0;
-    public Double Faktor { get; set; } = 0;
-    public Double FuelBefore { get; set; } = 0;
-    public Double FuelAfter { get; set; } = 0;
-    public Double CO2Before { get; set; } = 0;
-    public Double CO2After { get; set; } = 0;
-    public Double NOxBefore { get; set; } = 0;
-    public Double NOxAfter { get; set; } = 0;
-    public Double SOxBefore { get; set; } = 0;
-    public Double SOxAfter { get; set; } = 0;
+    public double Faktor { get; set; } = 0;
+    public double FuelBefore { get; set; } = 0;
+    public double FuelAfter { get; set; } = 0;
+    public double CO2Before { get; set; } = 0;
+    public double CO2After { get; set; } = 0;
+    public double NOxBefore { get; set; } = 0;
+    public double NOxAfter { get; set; } = 0;
+    public double SOxBefore { get; set; } = 0;
+    public double SOxAfter { get; set; } = 0;
+
     public ErrorItem Error { get; set; } = new ErrorItem();
     public AccountLogOnInfoItem logonInfo { get; set; } = new AccountLogOnInfoItem();
-
 }
+
 
 public class ShipGeneratorModesItem
 {
@@ -485,21 +489,25 @@ public class OperationModeProfileItem
 namespace SusteniWebServices.Controllers
 {
 
-    [Route("/[controller]")]
+    
     [ApiController]
+    [Route("[controller]")]
 
     public class ShipController : ControllerBase
     {
 
         #region Ship information
 
-
         [HttpPost]
         [Route("SaveGenerators")]
         public IActionResult SaveGenerators([FromBody] List<ShipGeneratorItem> generators)
         {
+            Console.WriteLine("Recebendo solicitação para salvar geradores...");
+            Console.WriteLine(JsonConvert.SerializeObject(generators, Formatting.Indented));
+
             if (generators == null || !generators.Any())
             {
+                Console.WriteLine("Nenhum gerador enviado para salvar.");
                 return BadRequest("Nenhum gerador enviado para salvar.");
             }
 
@@ -510,63 +518,74 @@ namespace SusteniWebServices.Controllers
                     Integrated Security=True;
                     TrustServerCertificate=True;
                     Encrypt=False;"))
-
                 {
                     cnn.Open();
+                    Console.WriteLine("Conexão com o banco de dados aberta com sucesso.");
 
                     foreach (var generator in generators)
                     {
                         if (!Guid.TryParse(generator.GeneratorGuid, out Guid generatorGuid) ||
                             !Guid.TryParse(generator.ShipGuid, out Guid shipGuid))
                         {
+                            Console.WriteLine($"GUID inválido: GeneratorGuid ({generator.GeneratorGuid}) ou ShipGuid ({generator.ShipGuid})");
                             return BadRequest($"GUID inválido para GeneratorGuid ({generator.GeneratorGuid}) ou ShipGuid ({generator.ShipGuid})");
                         }
 
+                        // 🔄 Sempre gera um novo GUID para evitar sobrescrever dados
+                        generator.GeneratorGuid = Guid.NewGuid().ToString();
+                        generator.Name += " - Copy";
+                        Console.WriteLine($"🔄 Novo GUID gerado para duplicação: {generator.GeneratorGuid}");
+                        Console.WriteLine($"🆕 Novo nome gerador duplicado: {generator.Name}");
+
+                        // 🧠 Buscar o próximo Order disponível
+                        int newOrder = 1;
+                        using (SqlCommand cmdOrder = new SqlCommand("SELECT ISNULL(MAX(OrderNumber), 0) + 1 FROM ShipGenerators WHERE ShipGuid = @ShipGuid", cnn))
+                        {
+                            cmdOrder.Parameters.AddWithValue("@ShipGuid", shipGuid);
+                            var result = cmdOrder.ExecuteScalar();
+                            if (result != null)
+                                newOrder = Convert.ToInt32(result);
+                        }
+
+                        generator.Order = newOrder;
+
                         string sql = @"
-                            IF EXISTS (SELECT 1 FROM ShipGenerators WHERE GeneratorGuid = @GeneratorGuid)
-                            BEGIN
-                                UPDATE ShipGenerators SET 
-                                    Name = @Name, 
-                                    kW = @kW, 
-                                    KgDieselkWh = @KgDieselkWh, 
-                                    FuelTypeGuid = @FuelTypeGuid,
-                                    MaintenanceCost = @MaintenanceCost,
-                                    FuelPrice = @FuelPrice,
-                                    PowerProduction = @PowerProduction,
-                                    OrderNumber = @OrderNumber
-                                WHERE GeneratorGuid = @GeneratorGuid
-                            END
-                            ELSE
-                            BEGIN
-                                INSERT INTO ShipGenerators (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, OrderNumber)
-                                VALUES (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @OrderNumber)
-                            END";
+                            INSERT INTO ShipGenerators (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, OrderNumber)
+                            VALUES (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @OrderNumber);
+                        ";
 
                         using (SqlCommand cmd = new SqlCommand(sql, cnn))
                         {
-                            cmd.Parameters.Add("@GeneratorGuid", SqlDbType.UniqueIdentifier).Value = generatorGuid;
+                            cmd.Parameters.Add("@GeneratorGuid", SqlDbType.UniqueIdentifier).Value = new Guid(generator.GeneratorGuid);
                             cmd.Parameters.Add("@ShipGuid", SqlDbType.UniqueIdentifier).Value = shipGuid;
                             cmd.Parameters.AddWithValue("@Name", generator.Name);
                             cmd.Parameters.AddWithValue("@kW", generator.kW);
                             cmd.Parameters.AddWithValue("@KgDieselkWh", generator.KgDieselkWh);
-                            cmd.Parameters.AddWithValue("@FuelTypeGuid", generator.FuelTypeGuid ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@FuelTypeGuid", string.IsNullOrEmpty(generator.FuelTypeGuid) ? DBNull.Value : new Guid(generator.FuelTypeGuid));
                             cmd.Parameters.AddWithValue("@MaintenanceCost", generator.MaintenanceCost);
                             cmd.Parameters.AddWithValue("@FuelPrice", generator.FuelPrice);
                             cmd.Parameters.AddWithValue("@PowerProduction", generator.PowerProduction);
                             cmd.Parameters.AddWithValue("@OrderNumber", generator.Order);
 
-                            cmd.ExecuteNonQuery();
+                            int rowsAffected = cmd.ExecuteNonQuery();
+                            Console.WriteLine($"✅ Linhas afetadas pelo INSERT: {rowsAffected}");
                         }
                     }
                 }
 
+                Console.WriteLine("Geradores salvos com sucesso.");
                 return Ok(new { message = "Geradores salvos com sucesso!" });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Erro ao salvar geradores: {ex.Message}");
                 return StatusCode(500, new { error = "Erro ao salvar os geradores.", details = ex.Message });
             }
         }
+
+
+
+
 
 
 
@@ -2110,6 +2129,7 @@ namespace SusteniWebServices.Controllers
         [HttpPost]
         public string GetShipGeneratorList(AccountLogOnInfoItem logonInfo)
         {
+            Console.WriteLine("🚨 Filtro recebido em GetShipGeneratorList: " + logonInfo.Parameters.filter);
 
             string conString;
 
@@ -2129,66 +2149,67 @@ namespace SusteniWebServices.Controllers
             sql += "CO2Before=(SELECT SUM(CAST(EM.HoursBefore AS float) * kW * PercentLoad / 100 * FaktorB / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
                     "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.Cf, ";
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.Cf,0), ";
             sql += "CO2After=(SELECT SUM(CAST(EM.HoursAfter AS float) * kW * PercentSaving / 100 * FaktorA / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
                     "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.Cf, ";
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.Cf,0), ";
             sql += "NOxBefore=(SELECT SUM(CAST(EM.HoursBefore AS float) * kW * PercentSaving / 100 * FaktorB / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
-                    "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.NOx, ";
+                    "AND G.GeneratorGuid = EM.GeneratorGuid AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.NOx,0), ";
             sql += "NOxAfter=(SELECT SUM(CAST(EM.HoursAfter AS float) * kW * PercentSaving / 100 * FaktorA / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
-                    "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.NOx, ";
+                    "AND G.GeneratorGuid = EM.GeneratorGuid AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.NOx,0), ";
             sql += "SOxBefore=(SELECT SUM(CAST(EM.HoursBefore AS float) * kW * PercentSaving / 100 * FaktorB / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
-                    "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.SOx,";
+                    "AND G.GeneratorGuid = EM.GeneratorGuid AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.SOx,0), ";
             sql += "SOxAfter=(SELECT SUM(CAST(EM.HoursAfter AS float) * kW * PercentSaving / 100 * FaktorA / 1000) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid " +
-                    "AND G.GeneratorGuid = EM.GeneratorGuid  AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
-                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * F.SOx ";
-            sql += "FROM Generators AS G INNER JOIN FuelType F ON G.FuelTypeGuid=F.FuelTypeGuid LEFT OUTER JOIN GeneratorEffectInfo AS GEI ON G.GeneratorGuid = GEI.GeneratorGuid ";
-            if (logonInfo.Parameters.field != "") { sql += logonInfo.Parameters.field; }
-            if (logonInfo.Parameters.filter != "") { sql += " WHERE " + logonInfo.Parameters.filter; }
-            if (logonInfo.Parameters.order != "") { sql += " ORDER BY " + logonInfo.Parameters.order; }
+                    "AND G.GeneratorGuid = EM.GeneratorGuid AND " + logonInfo.Parameters.fieldValue + " LEFT OUTER JOIN GeneratorKgDieselFaktor GKF ON EM.GeneratorModesGuid = GKF.GeneratorModesGuid " +
+                    "WHERE GEN.GeneratorGuid=G.GeneratorGuid) * ISNULL(F.SOx,0) ";
+            sql += "FROM Generators AS G ";
+            sql += "LEFT OUTER JOIN FuelType F ON G.FuelTypeGuid=F.FuelTypeGuid ";
+            sql += "LEFT OUTER JOIN GeneratorEffectInfo AS GEI ON G.GeneratorGuid = GEI.GeneratorGuid ";
+
+            if (!string.IsNullOrEmpty(logonInfo.Parameters.field)) { sql += logonInfo.Parameters.field; }
+            if (!string.IsNullOrEmpty(logonInfo.Parameters.filter)) { sql += " WHERE " + logonInfo.Parameters.filter; }
+            if (!string.IsNullOrEmpty(logonInfo.Parameters.order)) { sql += " ORDER BY " + logonInfo.Parameters.order; }
 
             List<ShipGeneratorItem> items = new();
 
-            conString = @"server=" + logonInfo.Server + ";User Id=" + logonInfo.UserId + ";password=" + logonInfo.Password + ";database=" + logonInfo.Database + ";TrustServerCertificate=True";
+            conString = @$"server={logonInfo.Server};User Id={logonInfo.UserId};password={logonInfo.Password};database={logonInfo.Database};TrustServerCertificate=True";
 
             using (SqlConnection cnn = new SqlConnection(conString))
             {
                 cnn.Open();
-
                 SqlCommand cmd = new SqlCommand(sql, cnn);
-
                 using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
                         ShipGeneratorItem item = new();
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("GeneratorGuid"))) { item.GeneratorGuid = rdr.GetString(rdr.GetOrdinal("GeneratorGuid")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("ShipGuid"))) { item.ShipGuid = rdr.GetString(rdr.GetOrdinal("ShipGuid")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("PowerProduction"))) { item.PowerProduction = rdr.GetBoolean(rdr.GetOrdinal("PowerProduction")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Name"))) { item.Name = rdr.GetString(rdr.GetOrdinal("Name")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Order"))) { item.Order = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("Order"))); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("kW"))) { item.kW = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("kW"))); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("KgDieselkWh"))) { item.KgDieselkWh = rdr.GetDouble(rdr.GetOrdinal("KgDieselkWh")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("MaintenanceCost"))) { item.MaintenanceCost = Convert.ToInt32(rdr.GetDouble(rdr.GetOrdinal("MaintenanceCost"))); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("EffectBefore"))) { item.EffectBefore = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("EffectBefore"))); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("EffectAfter"))) { item.EffectAfter = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("EffectAfter"))); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Faktor"))) { item.Faktor = rdr.GetDouble(rdr.GetOrdinal("Faktor")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("FuelBefore"))) { item.FuelBefore = rdr.GetDouble(rdr.GetOrdinal("FuelBefore")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("FuelAfter"))) { item.FuelAfter = rdr.GetDouble(rdr.GetOrdinal("FuelAfter")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("CO2Before"))) { item.CO2Before = rdr.GetDouble(rdr.GetOrdinal("CO2Before")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("CO2After"))) { item.CO2After = rdr.GetDouble(rdr.GetOrdinal("CO2After")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("NOxBefore"))) { item.NOxBefore = rdr.GetDouble(rdr.GetOrdinal("NOxBefore")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("NOxAfter"))) { item.NOxAfter = rdr.GetDouble(rdr.GetOrdinal("NOxAfter")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("SOxBefore"))) { item.SOxBefore = rdr.GetDouble(rdr.GetOrdinal("SOxBefore")); }
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("SOxAfter"))) { item.SOxAfter = rdr.GetDouble(rdr.GetOrdinal("SOxAfter")); }
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("GeneratorGuid"))) item.GeneratorGuid = rdr.GetString(rdr.GetOrdinal("GeneratorGuid"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("ShipGuid"))) item.ShipGuid = rdr.GetString(rdr.GetOrdinal("ShipGuid"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("PowerProduction"))) item.PowerProduction = rdr.GetBoolean(rdr.GetOrdinal("PowerProduction"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("Name"))) item.Name = rdr.GetString(rdr.GetOrdinal("Name"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("Order"))) item.Order = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("Order")));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("kW"))) item.kW = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("kW")));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("KgDieselkWh"))) item.KgDieselkWh = rdr.GetDouble(rdr.GetOrdinal("KgDieselkWh"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("MaintenanceCost"))) item.MaintenanceCost = Convert.ToInt32(rdr.GetDouble(rdr.GetOrdinal("MaintenanceCost")));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("EffectBefore"))) item.EffectBefore = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("EffectBefore")));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("EffectAfter"))) item.EffectAfter = Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("EffectAfter")));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("Faktor"))) item.Faktor = rdr.GetDouble(rdr.GetOrdinal("Faktor"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("FuelBefore"))) item.FuelBefore = rdr.GetDouble(rdr.GetOrdinal("FuelBefore"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("FuelAfter"))) item.FuelAfter = rdr.GetDouble(rdr.GetOrdinal("FuelAfter"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("CO2Before"))) item.CO2Before = rdr.GetDouble(rdr.GetOrdinal("CO2Before"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("CO2After"))) item.CO2After = rdr.GetDouble(rdr.GetOrdinal("CO2After"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("NOxBefore"))) item.NOxBefore = rdr.GetDouble(rdr.GetOrdinal("NOxBefore"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("NOxAfter"))) item.NOxAfter = rdr.GetDouble(rdr.GetOrdinal("NOxAfter"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("SOxBefore"))) item.SOxBefore = rdr.GetDouble(rdr.GetOrdinal("SOxBefore"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("SOxAfter"))) item.SOxAfter = rdr.GetDouble(rdr.GetOrdinal("SOxAfter"));
                         if (!item.PowerProduction)
                         {
                             item.EffectBefore = 0;
@@ -2197,12 +2218,9 @@ namespace SusteniWebServices.Controllers
                         items.Add(item);
                     }
                 }
-
             }
 
-            string output = JsonConvert.SerializeObject(items);
-
-            return output;
+            return JsonConvert.SerializeObject(items);
         }
 
 
@@ -2341,7 +2359,7 @@ namespace SusteniWebServices.Controllers
 
             string conString;
 
-            string sql = "SELECT G.GeneratorGuid, G.ShipGuid, G.PowerProduction, GEI.ProfilGuid, G.Name, G.[Order], G.kW, G.KgDieselkWh, GEI.EffectBefore, GEI.EffectAfter, GEI.Faktor, ";
+            string sql = "SELECT G.GeneratorGuid, G.ShipGuid, G.PowerProduction, GEI.ProfilGuid, G.Name, G.OrderNumber AS [Order], G.kW, G.KgDieselkWh, GEI.EffectBefore, GEI.EffectAfter, GEI.Faktor, ";
             sql += "MaintenanceCost=(SELECT Sum(GEN.MaintenanceCost * (EM.HoursBefore - EM.HoursAfter)) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid AND GEN.GeneratorGuid = EM.GeneratorGuid " +
                     " AND " + logonInfo.Parameters.fieldValue + "  " +
@@ -2995,14 +3013,15 @@ namespace SusteniWebServices.Controllers
                     cmd.Parameters.AddWithValue("@ShipGuid", originalGenerator.ShipGuid);
                     cmd.Parameters.AddWithValue("@Name", newGeneratorName);
                     cmd.Parameters.AddWithValue("@Order", originalGenerator.Order);
-                    cmd.Parameters.AddWithValue("@FuelTypeGuid", originalGenerator.FuelTypeGuid);
-                    cmd.Parameters.AddWithValue("@TypeGuid", originalGenerator.TypeGuid);
+                    cmd.Parameters.Add("@FuelTypeGuid", SqlDbType.UniqueIdentifier).Value =
+                        string.IsNullOrEmpty(originalGenerator.FuelTypeGuid?.ToString()) ? (object)DBNull.Value : Guid.Parse(originalGenerator.FuelTypeGuid.ToString());
+                    cmd.Parameters.Add("@TypeGuid", SqlDbType.UniqueIdentifier).Value = 
+                        string.IsNullOrEmpty(originalGenerator.TypeGuid) ? (object)DBNull.Value : Guid.Parse(originalGenerator.TypeGuid);
                     cmd.Parameters.AddWithValue("@kW", originalGenerator.kW);
                     cmd.Parameters.AddWithValue("@KgDieselkWh", originalGenerator.KgDieselkWh);
-                    cmd.Parameters.AddWithValue("@EfficientMotorSwitchboard", originalGenerator.EfficientMotorSwitchboard);
-                    cmd.Parameters.AddWithValue("@MaintenanceCost", originalGenerator.MaintenanceCost);
-                    cmd.Parameters.AddWithValue("@PowerProduction", originalGenerator.PowerProduction);
-                    cmd.Parameters.AddWithValue("@ExcludeAutoTune", originalGenerator.ExcludeAutoTune);
+                    cmd.Parameters.Add("@EfficientMotorSwitchboard", SqlDbType.Bit).Value = originalGenerator.EfficientMotorSwitchboard;
+                    cmd.Parameters.Add("@PowerProduction", SqlDbType.Bit).Value = originalGenerator.PowerProduction;
+                    cmd.Parameters.Add("@ExcludeAutoTune", SqlDbType.Bit).Value = originalGenerator.ExcludeAutoTune;
 
                     try
                     {
@@ -3290,7 +3309,7 @@ namespace SusteniWebServices.Controllers
                     item.logonInfo.Parameters.filter += " AND ProfilGuid IS NULL";
                 }
                 
-                item.logonInfo.Parameters.order = "G.[Order]";
+                item.logonInfo.Parameters.order = "G.OrderNumber";
 
                 List<ShipGeneratorModesShortItem> itemOM = GetShipGeneratorModesListeInternal(item.logonInfo);
                 int iCount = 0;
@@ -3410,7 +3429,7 @@ namespace SusteniWebServices.Controllers
                     item.logonInfo.Parameters.filter += " AND ProfilGuid IS NULL";
                 }
 
-                item.logonInfo.Parameters.order = "G.[Order]";
+                item.logonInfo.Parameters.order = "G.OrderNumber";
 
                 itemOM = GetShipGeneratorModesListeInternal(item.logonInfo);
 
@@ -3451,7 +3470,7 @@ namespace SusteniWebServices.Controllers
             {
                 item.Parameters.filter += " AND profilGuid IS NULL";
             }
-            item.Parameters.order = "G.[Order]";
+            item.Parameters.order = "G.OrderNumber";
 
             ShipGeneratorModesItem itemSGM = GetShipGeneratorLoad(item);
             if (itemSGM.PercentSaving < maxLoad)
@@ -3479,7 +3498,7 @@ namespace SusteniWebServices.Controllers
             {
                 item.Parameters.filter += " AND profilGuid IS NULL";
             }
-            item.Parameters.order = "G.[Order]";
+            item.Parameters.order = "G.OrderNumber";
             itemSGM = GetShipGeneratorLoad(item);
             if (itemPP.EffectAfter > NecesseryPP)
             {
@@ -3522,7 +3541,7 @@ namespace SusteniWebServices.Controllers
                 {
                     item.Parameters.filter += " AND profilGuid IS NULL";
                 }
-                item.Parameters.order = "G.[Order]";
+                item.Parameters.order = "G.OrderNumber";
                 itemSGM = GetShipGeneratorLoad(item);
                 ShipGeneratorModesListItem itemNL = new();
                 itemNL.UpdateMode = 3;
@@ -3572,7 +3591,7 @@ namespace SusteniWebServices.Controllers
             {
                 item.logonInfo.Parameters.filter += " AND profilGuid IS NULL";
             }
-            item.logonInfo.Parameters.order = "G.[Order]";
+            item.logonInfo.Parameters.order = "G.OrderNumber";
 
             ShipGeneratorModesItem itemSGM = GetShipGeneratorLoad(item.logonInfo);
             if (itemSGM.PercentSaving < 85)
@@ -3600,7 +3619,7 @@ namespace SusteniWebServices.Controllers
             {
                 item.logonInfo.Parameters.filter += " AND profilGuid IS NULL";
             }
-            item.logonInfo.Parameters.order = "G.[Order]";
+            item.logonInfo.Parameters.order = "G.OrderNumber";
             itemSGM = GetShipGeneratorLoad(item.logonInfo);
             if (itemPP.EffectAfter > item.NecesseryPP)
             {
@@ -3643,7 +3662,7 @@ namespace SusteniWebServices.Controllers
                 {
                     item.logonInfo.Parameters.filter += " AND profilGuid IS NULL";
                 }
-                item.logonInfo.Parameters.order = "G.[Order]";
+                item.logonInfo.Parameters.order = "G.OrderNumber";
                 itemSGM = GetShipGeneratorLoad(item.logonInfo);
                 ShipGeneratorModesListItem itemNL = new();
                 itemNL.UpdateMode = 3;
@@ -5900,6 +5919,9 @@ namespace SusteniWebServices.Controllers
         }
 
         #endregion
+
+
+        
 
     }
 
