@@ -2165,7 +2165,7 @@ namespace SusteniWebServices.Controllers
 
             string conString;
 
-            string sql = "SELECT G.GeneratorGuid, G.ShipGuid, G.PowerProduction, GEI.ProfilGuid, G.Name, G.[Order], G.kW, G.KgDieselkWh, GEI.EffectBefore, GEI.EffectAfter, GEI.Faktor, ";
+            string sql = "SELECT G.GeneratorGuid, G.ShipGuid, G.PowerProduction, GEI.ProfilGuid, G.Name, G.[Order], G.kW, G.KgDieselkWh, GEI.EffectBefore, GEI.EffectAfter, GEI.Faktor, G.TypeGuid, G.FuelTypeGuid, ";
             sql += "MaintenanceCost=(SELECT Sum(GEN.MaintenanceCost * (EM.HoursBefore - EM.HoursAfter)) " +
                     "FROM OperationModes AS OM INNER JOIN Generators AS GEN ON OM.ShipGuid = GEN.ShipGuid LEFT OUTER JOIN GeneratorModes AS EM ON OM.OperationModeGuid = EM.OperationModeGuid AND GEN.GeneratorGuid = EM.GeneratorGuid " +
                     " AND " + logonInfo.Parameters.fieldValue + "  " +
@@ -2209,6 +2209,7 @@ namespace SusteniWebServices.Controllers
             if (!string.IsNullOrEmpty(logonInfo.Parameters.field)) { sql += logonInfo.Parameters.field; }
             if (!string.IsNullOrEmpty(logonInfo.Parameters.filter)) { sql += " WHERE " + logonInfo.Parameters.filter; }
             if (!string.IsNullOrEmpty(logonInfo.Parameters.order)) { sql += " ORDER BY " + logonInfo.Parameters.order; }
+            
 
             List<ShipGeneratorItem> items = new();
 
@@ -2242,6 +2243,9 @@ namespace SusteniWebServices.Controllers
                         if (!rdr.IsDBNull(rdr.GetOrdinal("NOxAfter"))) item.NOxAfter = rdr.GetDouble(rdr.GetOrdinal("NOxAfter"));
                         if (!rdr.IsDBNull(rdr.GetOrdinal("SOxBefore"))) item.SOxBefore = rdr.GetDouble(rdr.GetOrdinal("SOxBefore"));
                         if (!rdr.IsDBNull(rdr.GetOrdinal("SOxAfter"))) item.SOxAfter = rdr.GetDouble(rdr.GetOrdinal("SOxAfter"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("TypeGuid"))) item.TypeGuid = rdr.GetString(rdr.GetOrdinal("TypeGuid"));
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("FuelTypeGuid"))) item.FuelTypeGuid = rdr.GetString(rdr.GetOrdinal("FuelTypeGuid"));
+
                         if (!item.PowerProduction)
                         {
                             item.EffectBefore = 0;
@@ -2635,7 +2639,7 @@ namespace SusteniWebServices.Controllers
             SqlConnection cnn;
             SqlCommand cmd;
 
-            conString = @"server=" + logonInfo.Server + ";User Id=" + logonInfo.UserId + ";password=" + logonInfo.Password + ";database=" + logonInfo.Database + ";TrustServerCertificate=True";
+            conString = $"Server={logonInfo.Server};Database={logonInfo.Database};Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
 
             cnn = new SqlConnection(conString);
             cnn.Open();
