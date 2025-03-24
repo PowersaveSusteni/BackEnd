@@ -580,9 +580,10 @@ namespace SusteniWebServices.Controllers
 
                         string sql = @"
                             INSERT INTO Generators 
-                            (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, [Order])
+                            (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, TypeGuid, EfficientMotorSwitchboard, MaintenanceCost, FuelPrice, PowerProduction, ExcludeAutoTune, [Order])
                             VALUES 
-                            (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @Order);";
+                            (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @TypeGuid, @EfficientMotorSwitchboard, @MaintenanceCost, @FuelPrice, @PowerProduction, @ExcludeAutoTune, @Order);";
+
 
 
 
@@ -593,11 +594,31 @@ namespace SusteniWebServices.Controllers
                             cmd.Parameters.AddWithValue("@Name", generator.Name);
                             cmd.Parameters.AddWithValue("@kW", generator.kW);
                             cmd.Parameters.AddWithValue("@KgDieselkWh", generator.KgDieselkWh);
-                            cmd.Parameters.AddWithValue("@FuelTypeGuid", string.IsNullOrEmpty(generator.FuelTypeGuid) ? DBNull.Value : new Guid(generator.FuelTypeGuid));
+
+                            Guid fuelTypeGuid;
+                            cmd.Parameters.Add("@FuelTypeGuid", SqlDbType.UniqueIdentifier);
+                            if (Guid.TryParse(generator.FuelTypeGuid, out fuelTypeGuid))
+                                cmd.Parameters["@FuelTypeGuid"].Value = fuelTypeGuid;
+                            else
+                                cmd.Parameters["@FuelTypeGuid"].Value = DBNull.Value;
+
+
+                            Guid typeGuid;
+                            cmd.Parameters.Add("@TypeGuid", SqlDbType.UniqueIdentifier);
+                            if (Guid.TryParse(generator.TypeGuid, out typeGuid))
+                                cmd.Parameters["@TypeGuid"].Value = typeGuid;
+                            else
+                                cmd.Parameters["@TypeGuid"].Value = DBNull.Value;
+
+
+                            cmd.Parameters.AddWithValue("@EfficientMotorSwitchboard", generator.EfficientMotorSwitchboard);
                             cmd.Parameters.AddWithValue("@MaintenanceCost", generator.MaintenanceCost);
                             cmd.Parameters.AddWithValue("@FuelPrice", generator.FuelPrice);
-                            cmd.Parameters.AddWithValue("@PowerProduction", generator.PowerProduction);
+                            cmd.Parameters.AddWithValue("@PowerProduction", generator.PowerProduction); // ✅ ESSA LINHA FALTAVA
+                            cmd.Parameters.AddWithValue("@ExcludeAutoTune", generator.ExcludeAutoTune);
                             cmd.Parameters.AddWithValue("@Order", generator.Order);
+
+
 
                             int rowsAffected = cmd.ExecuteNonQuery();
                             Console.WriteLine($"✅ Linhas afetadas pelo INSERT: {rowsAffected}");
@@ -3002,50 +3023,36 @@ namespace SusteniWebServices.Controllers
             return item;
         }
 
+      
         [Route("DuplicateGenerator")]
         [HttpPost]
-        public string DuplicateGenerator(AccountLogOnInfoItem logonInfo, string GeneratorGuid)
+        public IActionResult DuplicateGenerator(AccountLogOnInfoItem logonInfo, string GeneratorGuid)
         {
-            string conString = @"server=" + logonInfo.Server + ";User Id=" + logonInfo.UserId +
-                            ";password=" + logonInfo.Password + ";database=" + logonInfo.Database +
-                            ";TrustServerCertificate=True";
-            
+            string conString = $"server={logonInfo.Server};User Id={logonInfo.UserId};password={logonInfo.Password};database={logonInfo.Database};TrustServerCertificate=True";
+
             ShipGeneratorItem originalGenerator = GetShipGeneratorInternal(logonInfo, GeneratorGuid);
             if (originalGenerator == null)
             {
-                return JsonConvert.SerializeObject(new { success = false, message = "Gerador não encontrado." });
+                return Ok(new { success = false, message = "Gerador não encontrado." });
+
             }
 
-            // Obter a lista de geradores existentes para encontrar o próximo número disponível
             List<ShipGeneratorItem> generators = CreateShipGeneratorList(logonInfo);
-            int maxNumber = 0;
-
-            foreach (var gen in generators)
-            {
-                string name = gen.Name;
-                if (name.StartsWith("Gerador"))
-                {
-                    string numberPart = name.Substring(7); // Remove "Gerador" e mantém apenas o número
-                    if (int.TryParse(numberPart, out int number))
-                    {
-                        if (number > maxNumber)
-                        {
-                            maxNumber = number;
-                        }
-                    }
-                }
-            }
+            int maxNumber = generators
+                .Select(g => g.Name)
+                .Where(n => n.StartsWith("Gerador"))
+                .Select(n => int.TryParse(n.Substring(7), out var num) ? num : 0)
+                .DefaultIfEmpty(0)
+                .Max();
 
             int nextNumber = maxNumber + 1;
-            string newGeneratorName = "Gerador" + nextNumber;
-
+            string newGeneratorName = $"Gerador{nextNumber}";
             string newGeneratorGuid = Guid.NewGuid().ToString();
 
-            // Criando o SQL para inserir um novo gerador baseado no original
-            string sql = "INSERT INTO Generators (GeneratorGuid, ShipGuid, Name, Order, FuelTypeGuid, TypeGuid, kW, " +
-                        "KgDieselkWh, EfficientMotorSwitchboard, MaintenanceCost, PowerProduction, ExcludeAutoTune) " +
-                        "VALUES (@GeneratorGuid, @ShipGuid, @Name, @Order, @FuelTypeGuid, @TypeGuid, @kW, " +
-                        "@KgDieselkWh, @EfficientMotorSwitchboard, @MaintenanceCost, @PowerProduction, @ExcludeAutoTune)";
+            string sql = @"INSERT INTO Generators (GeneratorGuid, ShipGuid, Name, [Order], FuelTypeGuid, TypeGuid, kW, 
+                        KgDieselkWh, FuelPrice, EfficientMotorSwitchboard, MaintenanceCost, PowerProduction, ExcludeAutoTune) 
+                        VALUES (@GeneratorGuid, @ShipGuid, @Name, @Order, @FuelTypeGuid, @TypeGuid, @kW, 
+                        @KgDieselkWh, @FuelPrice, @EfficientMotorSwitchboard, @MaintenanceCost, @PowerProduction, @ExcludeAutoTune)";
 
             using (SqlConnection cnn = new SqlConnection(conString))
             {
@@ -3058,27 +3065,46 @@ namespace SusteniWebServices.Controllers
                     cmd.Parameters.AddWithValue("@Order", originalGenerator.Order);
                     cmd.Parameters.Add("@FuelTypeGuid", SqlDbType.UniqueIdentifier).Value =
                         string.IsNullOrEmpty(originalGenerator.FuelTypeGuid?.ToString()) ? (object)DBNull.Value : Guid.Parse(originalGenerator.FuelTypeGuid.ToString());
-                    cmd.Parameters.Add("@TypeGuid", SqlDbType.UniqueIdentifier).Value = 
+                    cmd.Parameters.Add("@TypeGuid", SqlDbType.UniqueIdentifier).Value =
                         string.IsNullOrEmpty(originalGenerator.TypeGuid) ? (object)DBNull.Value : Guid.Parse(originalGenerator.TypeGuid);
                     cmd.Parameters.AddWithValue("@kW", originalGenerator.kW);
                     cmd.Parameters.AddWithValue("@KgDieselkWh", originalGenerator.KgDieselkWh);
-                    cmd.Parameters.Add("@EfficientMotorSwitchboard", SqlDbType.Bit).Value = originalGenerator.EfficientMotorSwitchboard;
+                    cmd.Parameters.AddWithValue("@FuelPrice", originalGenerator.FuelPrice);
+                    cmd.Parameters.Add("@EfficientMotorSwitchboard", SqlDbType.Float).Value = originalGenerator.EfficientMotorSwitchboard;
+                    cmd.Parameters.Add("@MaintenanceCost", SqlDbType.Float).Value = originalGenerator.MaintenanceCost;
                     cmd.Parameters.Add("@PowerProduction", SqlDbType.Bit).Value = originalGenerator.PowerProduction;
                     cmd.Parameters.Add("@ExcludeAutoTune", SqlDbType.Bit).Value = originalGenerator.ExcludeAutoTune;
 
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        return JsonConvert.SerializeObject(new { success = true, message = "Gerador duplicado com sucesso!", newGeneratorGuid });
+                        var novoGerador = new ShipGeneratorItem
+                        {
+                            GeneratorGuid = newGeneratorGuid,
+                            ShipGuid = originalGenerator.ShipGuid,
+                            Name = newGeneratorName,
+                            Order = originalGenerator.Order,
+                            FuelTypeGuid = originalGenerator.FuelTypeGuid,
+                            TypeGuid = originalGenerator.TypeGuid,
+                            kW = originalGenerator.kW,
+                            KgDieselkWh = originalGenerator.KgDieselkWh,
+                            FuelPrice = originalGenerator.FuelPrice,
+                            EfficientMotorSwitchboard = originalGenerator.EfficientMotorSwitchboard,
+                            MaintenanceCost = originalGenerator.MaintenanceCost,
+                            PowerProduction = originalGenerator.PowerProduction,
+                            ExcludeAutoTune = originalGenerator.ExcludeAutoTune
+                        };
+                        return Ok(new { success = true, message = "Gerador duplicado com sucesso!", novoGerador });
+
                     }
                     catch (Exception ex)
                     {
-                        return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+                        return BadRequest(new { success = false, message = ex.Message });
+
                     }
                 }
             }
         }
-
 
 
         [Route("GetShipGeneratorLoad")]
