@@ -533,13 +533,42 @@ namespace SusteniWebServices.Controllers
 
                         // 🔄 Sempre gera um novo GUID para evitar sobrescrever dados
                         generator.GeneratorGuid = Guid.NewGuid().ToString();
-                        generator.Name += " - Copy";
+                        // Obtém todos os nomes existentes para esse ShipGuid
+                        List<string> existingNames = new List<string>();
+                        using (SqlCommand cmdNames = new SqlCommand("SELECT Name FROM Generators WHERE ShipGuid = @ShipGuid", cnn))
+                        {
+                            cmdNames.Parameters.AddWithValue("@ShipGuid", shipGuid);
+                            using (var reader = cmdNames.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    existingNames.Add(reader.GetString(0));
+                                }
+                            }
+                        }
+
+                        // Extrai o prefixo do nome base (ex: "Boiler", "Generator")
+                        string baseName = new string(generator.Name.TakeWhile(c => !char.IsDigit(c)).ToArray()).Trim();
+
+                        // Encontra o maior número existente com esse prefixo
+                        int maxIndex = existingNames
+                            .Where(name => name.StartsWith(baseName))
+                            .Select(name =>
+                            {
+                                string numberPart = name.Substring(baseName.Length).Trim();
+                                return int.TryParse(numberPart, out int n) ? n : 0;
+                            })
+                            .DefaultIfEmpty(0)
+                            .Max();
+
+                        generator.Name = $"{baseName} {maxIndex + 1}";
+
                         Console.WriteLine($"🔄 Novo GUID gerado para duplicação: {generator.GeneratorGuid}");
                         Console.WriteLine($"🆕 Novo nome gerador duplicado: {generator.Name}");
 
                         // 🧠 Buscar o próximo Order disponível
                         int newOrder = 1;
-                        using (SqlCommand cmdOrder = new SqlCommand("SELECT ISNULL(MAX(OrderNumber), 0) + 1 FROM ShipGenerators WHERE ShipGuid = @ShipGuid", cnn))
+                        using (SqlCommand cmdOrder = new SqlCommand("SELECT ISNULL(MAX([Order]), 0) + 1 FROM Generators WHERE ShipGuid = @ShipGuid", cnn))
                         {
                             cmdOrder.Parameters.AddWithValue("@ShipGuid", shipGuid);
                             var result = cmdOrder.ExecuteScalar();
@@ -550,9 +579,12 @@ namespace SusteniWebServices.Controllers
                         generator.Order = newOrder;
 
                         string sql = @"
-                            INSERT INTO ShipGenerators (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, OrderNumber)
-                            VALUES (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @OrderNumber);
-                        ";
+                            INSERT INTO Generators 
+                            (GeneratorGuid, ShipGuid, Name, kW, KgDieselkWh, FuelTypeGuid, MaintenanceCost, FuelPrice, PowerProduction, [Order])
+                            VALUES 
+                            (@GeneratorGuid, @ShipGuid, @Name, @kW, @KgDieselkWh, @FuelTypeGuid, @MaintenanceCost, @FuelPrice, @PowerProduction, @Order);";
+
+
 
                         using (SqlCommand cmd = new SqlCommand(sql, cnn))
                         {
@@ -565,7 +597,7 @@ namespace SusteniWebServices.Controllers
                             cmd.Parameters.AddWithValue("@MaintenanceCost", generator.MaintenanceCost);
                             cmd.Parameters.AddWithValue("@FuelPrice", generator.FuelPrice);
                             cmd.Parameters.AddWithValue("@PowerProduction", generator.PowerProduction);
-                            cmd.Parameters.AddWithValue("@OrderNumber", generator.Order);
+                            cmd.Parameters.AddWithValue("@Order", generator.Order);
 
                             int rowsAffected = cmd.ExecuteNonQuery();
                             Console.WriteLine($"✅ Linhas afetadas pelo INSERT: {rowsAffected}");
@@ -2216,6 +2248,9 @@ namespace SusteniWebServices.Controllers
                             item.EffectAfter = 0;
                         }
                         items.Add(item);
+                        Console.WriteLine("SQL FINAL GERADO:");
+                        Console.WriteLine(sql);
+
                     }
                 }
             }
@@ -2748,7 +2783,11 @@ namespace SusteniWebServices.Controllers
             sql += "FROM Generators G LEFT OUTER JOIN GeneratorModes GM ON GM.GeneratorGuid = G.GeneratorGuid ";
             if (logonInfo.Parameters.fieldValue != "")
             {
-                sql += logonInfo.Parameters.fieldValue + " ";
+                if (!string.IsNullOrWhiteSpace(logonInfo.Parameters.fieldValue))
+                    {
+                        sql += " AND " + logonInfo.Parameters.fieldValue + " ";
+                    }
+
             }
             if (logonInfo.Parameters.filter != "") { sql += " WHERE " + logonInfo.Parameters.filter; }
             if (logonInfo.Parameters.order != "") { sql += " ORDER BY " + logonInfo.Parameters.order; }
